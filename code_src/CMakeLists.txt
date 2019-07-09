@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(Tabb_AhmadYousef_RWHEC_Jun2018_Project)
+project(RWHEC_Jul2019_Exp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -std=c++11")
 
@@ -9,7 +9,7 @@ include_directories(${CERES_INCLUDE_DIRS} /usr/local /usr/local/eigen3 /usr/loca
 link_directories( )
 
 
-add_executable(Tabb_AhmadYousef_RWHEC_Jun2018_Project
+add_executable(RWHEC_Jul2019_Exp
 CostFunctions.hpp
 CostFunctions.cpp
 Calibration2.hpp
@@ -21,5 +21,5 @@ Tabb_AhmadYousef_RWHEC_Jun2018_main.hpp
 Tabb_AhmadYousef_RWHEC_Jun2018_main.cpp
 )
 
-target_link_libraries(Tabb_AhmadYousef_RWHEC_Jun2018_Project ${CERES_LIBRARIES} opencv_core opencv_highgui opencv_imgproc opencv_calib3d opencv_imgcodecs)
+target_link_libraries(RWHEC_Jul2019_Exp ${CERES_LIBRARIES} opencv_core opencv_highgui opencv_imgproc opencv_calib3d opencv_imgcodecs)
 
