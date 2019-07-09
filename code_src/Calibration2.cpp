@@ -173,6 +173,10 @@ bool CaliObjectOpenCV2::AccumulateCorners(bool draw_corners){
 
 			//corners[chess_w*chess_h];
 
+
+			// TODO -- determine if the pattern is in landscape or portrait mode.  correct accordingly.
+
+
 			first_point = pointBuf[0];
 			last_point = pointBuf[chess_w*chess_h - 1];
 
@@ -298,6 +302,7 @@ bool CaliObjectOpenCV2::AccumulateCornersFlexibleExternal(bool draw_corners){
 	}
 
 	cout << "Doing external images now .... " << endl;
+	// TODO
 	for (int i = 0; i <  int(external_images.size()); i++){
 		cout << "Looking for corners " << i << endl;
 
@@ -334,7 +339,8 @@ bool CaliObjectOpenCV2::AccumulateCornersFlexibleExternal(bool draw_corners){
 //			corner_found = cv::findChessboardCorners(gimage, boardsize, pointBuf,  CALIB_CB_ADAPTIVE_THRESH);
 //		}
 
-		if (corner_found) {
+		// TODO
+		if (corner_found && i < int(external_images.size())/4) {
 
 			// need to flip the orientation, possibly ...
 			first_point = pointBuf[0];
@@ -431,6 +437,8 @@ void CaliObjectOpenCV2::Calibrate(std::ofstream& out, string write_directory){
 	max_dim < image_size.height ? max_dim = image_size.height : 0;
 
 	double focal_length_px = max_dim*1.2;
+	// TODO
+	focal_length_px = 3000.0;
 
 	cameraMatrix.at<double>(0, 0) = focal_length_px;
 	cameraMatrix.at<double>(1, 1) = focal_length_px;
@@ -640,6 +648,8 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string wri
 	max_dim < image_size.height ? max_dim = image_size.height : 0;
 
 	double focal_length_px = max_dim*1.2;
+	// TODO
+	focal_length_px = 3000.0;
 
 	cameraMatrix.at<double>(0, 0) = focal_length_px;
 	cameraMatrix.at<double>(1, 1) = focal_length_px;
