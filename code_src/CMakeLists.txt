@@ -17,8 +17,8 @@ Calibration2.cpp
 StringFunctions.hpp
 DirectoryFunctions.hpp
 DirectoryFunctions.cpp
-Tabb_AhmadYousef_RWHEC_Jun2018_main.hpp
-Tabb_AhmadYousef_RWHEC_Jun2018_main.cpp
+RWHEC_Jul2019_Exp.hpp
+RWHEC_Jul2019_Exp.cpp
 )
 
 target_link_libraries(RWHEC_Jul2019_Exp ${CERES_LIBRARIES} opencv_core opencv_highgui opencv_imgproc opencv_calib3d opencv_imgcodecs)
