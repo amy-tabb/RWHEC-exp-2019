@@ -76,7 +76,7 @@ public:
 
 	void Calibrate(std::ofstream& out, string write_directory);
 
-	void CalibrateFlexibleExternal(std::ofstream& out, string write_directory);
+	void CalibrateFlexibleExternal(float initial_focal_px, std::ofstream& out, string write_directory);
 
 	void LevMarCameraCaliNoDistortion(vector< vector<cv::Point2f> >& imagep, vector< vector<cv::Point3f> >& worldp,
 			std::ofstream& out);
@@ -86,6 +86,9 @@ public:
 void camera(Matrix3d& Kinv, float max_u, float max_v, float mag, vector< Vector3d >& vertex_coordinates );
 
 int create_camera(Matrix3d& internal, MatrixXd& external, int r, int g, int b, int rows, int cols,
+		string ply_file, double scale);
+
+void create_camera4d(Matrix3d& internal, Matrix4d& external, int r, int g, int b, int rows, int cols,
 		string ply_file, double scale);
 
 

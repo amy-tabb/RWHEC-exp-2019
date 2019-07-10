@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
 	int camera_only = 0;
 	int rwhec_only = 0;
 
+	// TODO add camera scale.
 
 	while (1)
 	{
@@ -158,6 +159,9 @@ int main(int argc, char** argv) {
 		do_camcali = true;  do_rwhec = true;
 	}
 
+	do_reconstruction = false;
+	if (do_rwhec){ do_reconstruction = true; }
+
 	struct stat info;
 
 	if (source_dir.size() > 0 && write_dir.size() > 0){
@@ -231,6 +235,8 @@ int main(int argc, char** argv) {
 	if (initial_focal_px > 0){
 		out << "--focal-px="<< initial_focal_px << endl;
 	}
+
+	out << "do camera " << do_camcali << "  do rwhec " << do_rwhec << endl;
 
 
 	/////////////////////    READ CALIBRATION ITEMS FROM FILE /////////////////
@@ -356,7 +362,7 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 			// argument is whether or not to draw the corners ....
 			COs[k].AccumulateCornersFlexibleExternal(true);
 
-			COs[k].CalibrateFlexibleExternal(out,  write_dir + "camera_results" + ToString<int>(k));
+			COs[k].CalibrateFlexibleExternal(initial_focal_px, out,  write_dir + "camera_results" + ToString<int>(k));
 			out.close();
 
 			// write cali file
@@ -580,6 +586,40 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 		ReadRobotFileRobotCaliTxt(filename, Bs);
 	}
 
+	string robot_camera_dir = write_dir + "robot_cams";
+
+	command = "mkdir " + robot_camera_dir;
+	system(command.c_str());
+
+	Matrix3d internal_cali;
+
+	for (int i = 0; i < 3; i++){
+		for (int j = 0; j < 3; j++){
+			internal_cali(i, j) = COs[0].A[i][j];
+		}
+	}
+
+	string camera_file_robot;
+
+	Matrix4d TransLH; TransLH.setIdentity();  TransLH(0,0) = -1;
+	// create camera representations for each robot element .....
+	for (int i = 0, bn = Bs.size(); i < bn; i++){
+		camera_file_robot = robot_camera_dir + "/robot" + ToString<int>(i) + ".ply";
+
+		create_camera4d(internal_cali, Bs[i], 100, 0, 200, COs[0].image_size.height, COs[0].image_size.width,
+				camera_file_robot, 250);
+
+		// TODO flag.
+
+
+		Bs[i] = TransLH*Bs[i];
+
+		camera_file_robot = robot_camera_dir + "/robotLH" + ToString<int>(i) + ".ply";
+
+		create_camera4d(internal_cali, Bs[i], 100, 0, 200, COs[0].image_size.height, COs[0].image_size.width,
+				camera_file_robot, 250);
+
+	}
 
 	Matrix3d TestR;
 	Matrix4d X;

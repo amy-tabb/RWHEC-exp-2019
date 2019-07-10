@@ -602,9 +602,14 @@ void CaliObjectOpenCV2::Calibrate(std::ofstream& out, string write_directory){
 	}
 }
 
-void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string write_directory){
+void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, std::ofstream& out, string write_directory){
 
 	// need to make the points 3D
+	string camera_ply_directory = write_directory + "/ply_cameras";
+	string command = "mkdir " + camera_ply_directory;
+	system(command.c_str());
+	string camera_ply_file;
+
 
 	vector< cv::Point3f> corners(chess_h*chess_w);
 	string filename;
@@ -648,8 +653,11 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string wri
 	max_dim < image_size.height ? max_dim = image_size.height : 0;
 
 	double focal_length_px = max_dim*1.2;
-	// TODO
-	focal_length_px = 3000.0;
+
+	if (initial_focal_px > 0){
+
+		focal_length_px = initial_focal_px;
+	}
 
 	cameraMatrix.at<double>(0, 0) = focal_length_px;
 	cameraMatrix.at<double>(1, 1) = focal_length_px;
@@ -710,10 +718,13 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string wri
 	cout << "rms " << rms << endl;
 	cout << "camera matrix " << endl;
 
+	Matrix3d internal;
+
 
 	for (int i = 0; i < 3; i++){
 		for (int j = 0; j < 3; j++){
 			cout << cameraMatrix.at<double>(i, j) << " ";
+			internal(i, j) = cameraMatrix.at<double>(i, j);
 		}
 		cout << endl;
 	}
@@ -781,6 +792,9 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string wri
 		Rts.push_back(vector<vector <double> >());
 	}
 
+	int actual_number;
+
+	MatrixXd RtEigen(3, 4);
 
 	// we only want these for the external images ....
 	for (int m = number_internal_images_written; m < int(all_points_wo_blanks.size()); m++){
@@ -792,10 +806,20 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string wri
 		for (int i = 0; i < 3; i++){
 			for (int j = 0; j < 3; j++){
 				tempRt[i][j] = rotMatrix.at<double>(i, j);
+				RtEigen(i, j) = rotMatrix.at<double>(i, j);
 			}
 
 			tempRt[i][3] = tvecs[m].at<double>(i);
+			RtEigen(i, 3) = tvecs[m].at<double>(i);
+
 		}
+
+		actual_number = mapping_from_limited_to_full.at(m) - number_internal_images_written;
+
+		camera_ply_file = camera_ply_directory + "/camera" + ToString<int>(actual_number) + ".ply";
+
+		create_camera(internal, RtEigen, 200, 0, 50, image_size.height, image_size.width, camera_ply_file, 200.0);
+
 
 		Rts[mapping_from_limited_to_full.at(m) - number_internal_images_written] = tempRt;
 		//cout << "RTs " << endl; cin >> ch;
@@ -860,6 +884,23 @@ void camera(Matrix3d& Kinv, float max_u, float max_v, float mag, vector< Vector3
 	vertex_coordinates.push_back(b);
 
 }
+
+void create_camera4d(Matrix3d& internal, Matrix4d& external, int r, int g, int b, int rows, int cols,
+		string ply_file, double scale){
+
+	MatrixXd rt(3, 4);
+
+	for (int i = 0; i < 3; i++){
+		for (int j = 0; j < 4; j++){
+			rt(i, j) = external(i, j);
+		}
+	}
+
+	create_camera(internal, rt, r, g, b, rows, cols, ply_file, scale);
+
+
+}
+
 
 int create_camera(Matrix3d& internal, MatrixXd& external, int r, int g, int b, int rows, int cols,
 		string ply_file, double scale){
