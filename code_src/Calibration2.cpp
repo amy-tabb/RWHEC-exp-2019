@@ -830,3 +830,198 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(std::ofstream& out, string wri
 		cv::imwrite(filename.c_str(), rview);
 	}
 }
+
+
+
+void camera(Matrix3d& Kinv, float max_u, float max_v, float mag, vector< Vector3d >& vertex_coordinates ) {
+
+	Vector3d a;
+	Vector3d b;
+	Vector3d c;
+	Vector3d d;
+
+	Vector3d x;
+	x << 0, 0, 1;
+
+	a = mag*Kinv*x;
+
+	x << max_u, 0, 1;
+	b = mag*Kinv*x;
+
+	x << max_u, max_v, 1;
+	c = mag*Kinv*x;
+
+	x << 0, max_v, 1;
+	d = mag*Kinv*x;
+
+	vertex_coordinates.push_back(a);
+	vertex_coordinates.push_back(d);
+	vertex_coordinates.push_back(c);
+	vertex_coordinates.push_back(b);
+
+}
+
+int create_camera(Matrix3d& internal, MatrixXd& external, int r, int g, int b, int rows, int cols,
+		string ply_file, double scale){
+
+	vector< Vector3d > vertex_coordinates;
+	vector< Vector3d > vertex_normals;
+	vector< vector<int> > face_indices;
+	vector< vector<int> > edge_indices;
+	vector<Vector3d> colors;
+	Vector3d C;
+	Vector3d t;
+	Matrix3d R;
+
+	for (int r0 = 0; r0 < 3; r0++){
+		for (int c = 0; c < 3; c++){
+			R(r0, c) = external(r0, c);
+		}
+
+		t(r0) = external(r0, 3);
+	}
+
+
+	C = -R.inverse()*t;
+
+	Matrix3d Kinv = internal.inverse();
+
+
+	Matrix3d Rinv = R.transpose();
+
+	camera(Kinv, cols, rows, scale, vertex_coordinates);
+
+
+	Vector3d tempV;
+
+
+	for (int i = 0; i < 4; i++){
+		tempV = vertex_coordinates[i];
+		vertex_coordinates[i] = Rinv*(vertex_coordinates[i] - t);
+
+	}
+
+	Vector3d diff_vector;
+
+	vertex_coordinates.push_back(C);
+
+
+	Vector3d cp;
+	int vertex_number = 0;
+
+	// front face.
+	vector<int> face;
+	face.push_back(vertex_number);
+	face.push_back(vertex_number + 3);
+	face.push_back(vertex_number + 1);
+
+	face_indices.push_back(face);
+
+
+	face.clear();
+
+	face.push_back(vertex_number + 2);
+	face.push_back(vertex_number + 1);
+	face.push_back(vertex_number + 3);
+
+	face_indices.push_back(face);
+
+
+	face.clear();
+	// a side.
+
+	face.push_back(vertex_number);
+	face.push_back(vertex_number + 4);
+	face.push_back(vertex_number + 3);
+
+
+	face_indices.push_back(face);
+
+	face.clear();
+
+	face.push_back(vertex_number);
+	face.push_back(vertex_number + 1);
+	face.push_back(vertex_number + 4);
+
+
+	face_indices.push_back(face);
+
+	face.clear();
+
+	face.push_back(vertex_number + 1);
+	face.push_back(vertex_number + 2);
+	face.push_back(vertex_number + 4);
+
+
+	face_indices.push_back(face);
+
+	face.clear();
+
+	face.push_back(vertex_number + 2);
+	face.push_back(vertex_number + 3);
+	face.push_back(vertex_number + 4);
+
+
+	face_indices.push_back(face);
+
+	face.clear();
+
+
+	vertex_number += 5;
+
+
+	std::ofstream out;
+	out.open(ply_file.c_str());
+
+
+	out << "ply" << endl;
+	out << "format ascii 1.0" << endl;
+	out << "element vertex " << vertex_coordinates.size() << endl;
+	out << "property float x" << endl;
+	out << "property float y" << endl;
+	out << "property float z" << endl;
+	//out << "property float nx" << endl;
+	//out << "property float ny" << endl;
+	//out << "property float nz" << endl;
+	out << "property uchar red" << endl;
+	out << "property uchar green" << endl;
+	out << "property uchar blue" << endl;
+	out << "property uchar alpha" << endl;
+	out << "element face " << face_indices.size() << endl;
+	out << "property list uchar int vertex_indices"<< endl;
+
+	out << "end_header" << endl;
+
+	unsigned int zero = 0;
+	for (int i = 0, nc = vertex_coordinates.size(); i < nc; i++){
+		out << vertex_coordinates[i](0) << " " << vertex_coordinates[i](1) << " " << vertex_coordinates[i](2) << " ";
+
+		if (i == 0){
+			out << " 255 255 255 255" << endl;
+		}	else {
+			out << r << " " << g << " " << b << " 255 " << endl;
+		}
+
+
+	}
+
+	for (int i = 0; i < int(face_indices.size()); i++){
+
+		out << face_indices[i].size() << " ";
+
+
+		for (int j = 0; j < int(face_indices[i].size()); j++){
+			out << face_indices[i].at(j) << " ";
+		}
+
+
+		out << endl;
+
+	}
+
+
+	out.close();
+
+
+	return 0;
+}

@@ -31,6 +31,7 @@
 #include <iomanip>
 #include "RWHEC_Jul2019_Exp.hpp"
 #include <getopt.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -137,62 +138,100 @@ int main(int argc, char** argv) {
 			initial_focal_px = FromString<float>(optarg);
 			break;
 		}
-
-
 	}
 
+	do_camcali = false;  do_rwhec = false;
+	if (camera_only && rwhec_only){
+		cout << "You have entered --camera-only and --rwhec-only . These options are mutally exclusive.  I assume you mean both, which is the default." << endl;
+		do_camcali = true;  do_rwhec = true;
+	}
 
+	if (camera_only){
+		do_camcali = true;
+	}
 
+	if (rwhec_only){
+		do_rwhec = true;
+	}
 
-	if (argc >= 3){
-		source_dir =   string(argv[1]);
-		write_dir = argv[2];
+	if (!camera_only && !rwhec_only){
+		do_camcali = true;  do_rwhec = true;
+	}
 
-		EnsureDirHasTrailingBackslash(source_dir);
+	struct stat info;
 
-		cali_object_file =  string(source_dir) + "calibration_object.txt";
-		if (argc == 4){
-			flag = FromString<int>(argv[3]);
-			do_camcali = false;
-			do_rwhec = false;
-			do_reconstruction = false;
+	if (source_dir.size() > 0 && write_dir.size() > 0){
+		if( stat( write_dir.c_str(), &info ) != 0 ){
+			cout << "cannot access " << write_dir << endl;
+			exit(1);
+		}
+		else if( info.st_mode & S_IFDIR ){  // S_ISDIR()
+			//cout << "Is a directory " << output_directory << endl;;
+		}
 
-			switch (flag) {
-			case 0: {
-				do_camcali = true;
-			} break;
-			case 1: {
-				do_rwhec = true;
-				do_reconstruction = true;
-			} break;
-			default: {
-				cout << "Bad flag -- not 0-1  " << endl;
-				exit(1);
-			}
-			}
+		if( stat( source_dir.c_str(), &info ) != 0 ){
+			cout << "cannot access " << source_dir << endl;
+			exit(1);
+		}
+		else if( info.st_mode & S_IFDIR ){  // S_ISDIR()
+
 		}
 	}	else {
-		cout << "Wrong number of arguments " << endl;
-		exit(1);
+		if (write_dir.size() == 0){
+			cout << "output directory was empty" << endl; exit(1);
+		}
+
+		if (source_dir.size() == 0){
+			cout << "input directory was empty" << endl; exit(1);
+		}
 	}
+
+	EnsureDirHasTrailingBackslash(source_dir);
+	EnsureDirHasTrailingBackslash(write_dir);
+
+//	out << "arguments: " << endl;
+//			out << "-- segmentation \\" << endl;
+//			out << "--input=" << input_directory << " \\" << endl;
+//			out << "--output=" << output_directory << " \\" << endl;
+
+
+		cali_object_file =  string(source_dir) + "calibration_object.txt";
 
 	ifstream in;
 	in.open(cali_object_file.c_str());
 
-	if (!in){
-		cout << "You forgot the calibration_object.txt file or the path is wrong" << endl << argv[1] << endl;;
+	if (!in.good()){
+		cout << "You forgot the calibration_object.txt file or the path is wrong" << endl << source_dir << endl;;
 		cout << cali_object_file << endl;
 		exit(1);
 	}
 	in.close();
 
+	ofstream out;
+	string filename = write_dir + "arguments.txt";
+	out.open(filename.c_str());
+	out << "arguments: " << endl;
+	if (left_handed_robot){
+	out << "--left-handed-robot \\" << endl;
+	}
 
-	//	string temp;
-	//	in >> temp >> chess_mm_height;
-	//	in >> temp >> chess_mm_width;
-	//	in >> temp >> chess_height;
-	//	in >> temp >> chess_width;
-	//	in.close();
+	if (!camera_only && !rwhec_only){
+		if (camera_only){
+			out << "--camera-only \\" << endl;
+		}
+
+		if (rwhec_only){
+			out << "--rwhec-only \\" << endl;
+		}
+	}
+
+	out << "--input=" << source_dir << " \\" << endl;
+	out << "--output=" << write_dir << " \\" << endl;
+
+	if (initial_focal_px > 0){
+		out << "--focal-px="<< initial_focal_px << endl;
+	}
+
 
 	/////////////////////    READ CALIBRATION ITEMS FROM FILE /////////////////
 	string fieldString;
@@ -242,14 +281,16 @@ int main(int argc, char** argv) {
 	}
 
 
-	RobotWorldHandEyeCalibration(chess_mm_width, chess_mm_height, chess_height, chess_width, source_dir, write_dir, do_camcali, do_rwhec, do_reconstruction, VERBOSE);
+	RobotWorldHandEyeCalibration(chess_mm_width, chess_mm_height, chess_height, chess_width, source_dir,
+			write_dir, do_camcali, do_rwhec, do_reconstruction, initial_focal_px, VERBOSE);
 
 	return 0;
 }
 
 
 int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width,
-		int chess_h, int chess_w, string source_dir, string write_dir, bool do_camcali, bool do_rwhec, bool do_reconstruction, bool verbose){
+		int chess_h, int chess_w, string source_dir, string write_dir, bool do_camcali, bool do_rwhec, bool do_reconstruction,
+		float initial_focal_px, bool verbose){
 
 	string command;
 	//int ret;

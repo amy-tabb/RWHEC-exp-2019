@@ -83,5 +83,10 @@ public:
 
 };
 
+void camera(Matrix3d& Kinv, float max_u, float max_v, float mag, vector< Vector3d >& vertex_coordinates );
+
+int create_camera(Matrix3d& internal, MatrixXd& external, int r, int g, int b, int rows, int cols,
+		string ply_file, double scale);
+
 
 #endif /* ROBOTWORLDHANDEYECALIDUALEXP0_SRC_CALIBRATION2_HPP_ */
