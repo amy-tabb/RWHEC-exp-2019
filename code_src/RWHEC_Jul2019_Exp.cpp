@@ -609,12 +609,24 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 		create_camera4d(internal_cali, Bs[i], 100, 0, 200, COs[0].image_size.height, COs[0].image_size.width,
 				camera_file_robot, 250);
 
-		// TODO flag.
+		/// now, need to take this apart.  currently, we have R | C.
 
 
-		Bs[i] = TransLH*Bs[i];
+		Matrix3d Rrob; Vector3d C;
+		Vector3d trob;
+		for (int r = 0; r < 3; r++){
+			for (int c = 0; c < 3; c++){
+				Rrob(r, c) = Bs[i](r, c);
+			}
+			C(r) = Bs[i](r, 3);
+		}
 
-		camera_file_robot = robot_camera_dir + "/robotLH" + ToString<int>(i) + ".ply";
+		trob = -Rrob*C;
+		for (int r = 0; r < 3; r++){
+			Bs[i](r, 3) = trob(r);
+		}
+
+		camera_file_robot = robot_camera_dir + "/robottransformed" + ToString<int>(i) + ".ply";
 
 		create_camera4d(internal_cali, Bs[i], 100, 0, 200, COs[0].image_size.height, COs[0].image_size.width,
 				camera_file_robot, 250);

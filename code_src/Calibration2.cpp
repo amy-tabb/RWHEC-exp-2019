@@ -340,7 +340,7 @@ bool CaliObjectOpenCV2::AccumulateCornersFlexibleExternal(bool draw_corners){
 //		}
 
 		// TODO
-		if (corner_found && i < int(external_images.size())/4) {
+		if (corner_found) {
 
 			// need to flip the orientation, possibly ...
 			first_point = pointBuf[0];
@@ -644,7 +644,7 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, std::o
 
 	cv::Mat cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 
-	cv::Mat distCoeffs = cv::Mat::zeros(4, 1, CV_64F);
+	cv::Mat distCoeffs = cv::Mat::zeros(5, 1, CV_64F);
 	//cv::Mat distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
 
 	vector<cv::Mat> rvecs, tvecs;
@@ -684,7 +684,8 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, std::o
 
 	if (text_file.size() == 0){
 
-		rms = cv::calibrateCamera(all_3d_corners, all_points_wo_blanks, image_size, cameraMatrix, distCoeffs, rvecs, tvecs);
+		rms = cv::calibrateCamera(all_3d_corners, all_points_wo_blanks, image_size, cameraMatrix, distCoeffs, rvecs, tvecs,
+				cv::CALIB_USE_INTRINSIC_GUESS | cv::CALIB_ZERO_TANGENT_DIST | cv::CALIB_FIX_K3);
 
 	}	else {
 		ifstream in(text_file.c_str());
