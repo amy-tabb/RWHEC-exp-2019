@@ -65,14 +65,15 @@ int main(int argc, char** argv) {
 	bool do_reconstruction = true;
 	int print_help = 0;
 
-	cout << "Usage for calibration is function_name input_directory write_directory camcali_rwhec flag (no flag -- do both, flag == 0, do camera only camera calibration, flag == 1, do only rwhec). Full path is needed for robot_directory " << endl;
 
 	float initial_focal_px = -1; // means not set;
 	int left_handed_robot = false;
 	int camera_only = 0;
 	int rwhec_only = 0;
+	int htms_need_trans = 0;
+	int zero_tangent_dist = 0;
+	int zero_k3;
 
-	// TODO add camera scale.
 
 	while (1)
 	{
@@ -82,6 +83,9 @@ int main(int argc, char** argv) {
 				{"left-handed-robot", no_argument,       &left_handed_robot, 1},
 				{"camera-only", no_argument,       &camera_only, 1},
 				{"rwhec-only", no_argument,       &rwhec_only, 1},
+				{"htms-need-trans", no_argument,       &htms_need_trans, 1},
+				{"zero-tangent", no_argument,       &zero_tangent_dist, 1},
+				{"zero-k3", no_argument,       &zero_k3, 1},
 				/* These options don’t set a flag.
 	             We distinguish them by their indices. */
 				{"input",   required_argument, 0, 'a'},
@@ -96,10 +100,12 @@ int main(int argc, char** argv) {
 			cout << std::left << setw(42) << "--input=[STRING] "<< "Mandatory, has to be a directory." << endl;
 			cout << std::left << setw(42) << "--output=[STRING] " << "Mandatory, has to be a directory." << endl;
 			cout << std::left << setw(42) << "--focal-px=[float] " << "Initial focal length in pixels for the camera.  Default is max dimension * 1.2 " << endl;
-			cout << std::left << setw(42) << "--left-handed-robot " << "No arguments.  Indicates the robot coordinate system is left handed.  Default is right handed." << endl;
 			cout << std::left << setw(42) << "--camera-only " << "No arguments. Indicates you only want to calibrate the camera(s)" << endl;
 			cout << std::left << setw(42) << "--rwhec-only "  << "No arguments. Indicates you only want to perform the robot-camera calibration, cameras are already calibrated and the calibration is stored in the write directory (check)." << endl;
 			cout << " To calibrate cameras and robot-camera, do not list either flag." << endl;
+			cout << std::left << setw(42) << "--htms-need-trans " << "No arguments.  Indicates that the robot HTMs are R | C instead of R | t. The code will transform and write the correct file.  NOTE: X, Z assume R | t, this is a transition feature and will be removed." << endl;
+			cout << std::left << setw(42) << "--zero-tangent " << "No arguments. In the camera calibration part, sets the tagential components of radial distortion (p1, p2) to zero." << endl;
+			cout << std::left << setw(42) << "--zero-k3 " << "No arguments. In the camera calibration part, sets the 3rd radial distortion k value to zero." << endl;
 			cout << "All other arguments are ignored." << endl;
 			cout << endl << endl;
 			exit(1);
@@ -193,10 +199,6 @@ int main(int argc, char** argv) {
 	EnsureDirHasTrailingBackslash(source_dir);
 	EnsureDirHasTrailingBackslash(write_dir);
 
-//	out << "arguments: " << endl;
-//			out << "-- segmentation \\" << endl;
-//			out << "--input=" << input_directory << " \\" << endl;
-//			out << "--output=" << output_directory << " \\" << endl;
 
 
 		cali_object_file =  string(source_dir) + "calibration_object.txt";
@@ -229,12 +231,23 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	if (htms_need_trans){
+		out << "--htms-need-trans \\" << endl;
+	}
+	if (zero_tangent_dist){
+		out << "--zero-tangent \\" << endl;
+	}
+	if (zero_k3){
+		out << "--zero-k3  \\"<< endl;
+	}
+
 	out << "--input=" << source_dir << " \\" << endl;
 	out << "--output=" << write_dir << " \\" << endl;
 
 	if (initial_focal_px > 0){
 		out << "--focal-px="<< initial_focal_px << endl;
 	}
+
 
 	out << "do camera " << do_camcali << "  do rwhec " << do_rwhec << endl;
 
@@ -288,7 +301,7 @@ int main(int argc, char** argv) {
 
 
 	RobotWorldHandEyeCalibration(chess_mm_width, chess_mm_height, chess_height, chess_width, source_dir,
-			write_dir, do_camcali, do_rwhec, do_reconstruction, initial_focal_px, VERBOSE);
+			write_dir, do_camcali, do_rwhec, do_reconstruction, initial_focal_px, htms_need_trans, zero_tangent_dist, zero_k3, VERBOSE);
 
 	return 0;
 }
@@ -296,7 +309,7 @@ int main(int argc, char** argv) {
 
 int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width,
 		int chess_h, int chess_w, string source_dir, string write_dir, bool do_camcali, bool do_rwhec, bool do_reconstruction,
-		float initial_focal_px, bool verbose){
+		float initial_focal_px, int htms_need_trans, int zero_tangent_dist, int zero_k3, bool verbose){
 
 	string command;
 	//int ret;
@@ -362,7 +375,7 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 			// argument is whether or not to draw the corners ....
 			COs[k].AccumulateCornersFlexibleExternal(true);
 
-			COs[k].CalibrateFlexibleExternal(initial_focal_px, out,  write_dir + "camera_results" + ToString<int>(k));
+			COs[k].CalibrateFlexibleExternal(initial_focal_px, zero_tangent_dist, zero_k3, out,  write_dir + "camera_results" + ToString<int>(k));
 			out.close();
 
 			// write cali file
@@ -601,7 +614,14 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 
 	string camera_file_robot;
 
-	Matrix4d TransLH; TransLH.setIdentity();  TransLH(0,0) = -1;
+	ofstream newout;
+	string write_robot_file = write_dir + "robot_cali_transformed.txt";
+
+	if (htms_need_trans){
+		newout.open(write_robot_file.c_str());
+		newout << Bs.size() << endl;
+	}
+
 	// create camera representations for each robot element .....
 	for (int i = 0, bn = Bs.size(); i < bn; i++){
 		camera_file_robot = robot_camera_dir + "/robot" + ToString<int>(i) + ".ply";
@@ -610,27 +630,32 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 				camera_file_robot, 250);
 
 		/// now, need to take this apart.  currently, we have R | C.
+		if (htms_need_trans){
 
-
-		Matrix3d Rrob; Vector3d C;
-		Vector3d trob;
-		for (int r = 0; r < 3; r++){
-			for (int c = 0; c < 3; c++){
-				Rrob(r, c) = Bs[i](r, c);
+			Matrix3d Rrob; Vector3d C;
+			Vector3d trob;
+			for (int r = 0; r < 3; r++){
+				for (int c = 0; c < 3; c++){
+					Rrob(r, c) = Bs[i](r, c);
+				}
+				C(r) = Bs[i](r, 3);
 			}
-			C(r) = Bs[i](r, 3);
+
+			trob = -Rrob*C;
+			for (int r = 0; r < 3; r++){
+				Bs[i](r, 3) = trob(r);
+			}
+
+
+
+			camera_file_robot = robot_camera_dir + "/robottransformed" + ToString<int>(i) + ".ply";
+
+			create_camera4d(internal_cali, Bs[i], 100, 0, 200, COs[0].image_size.height, COs[0].image_size.width,
+					camera_file_robot, 250);
+
+			newout << Bs[i] << endl;
+
 		}
-
-		trob = -Rrob*C;
-		for (int r = 0; r < 3; r++){
-			Bs[i](r, 3) = trob(r);
-		}
-
-		camera_file_robot = robot_camera_dir + "/robottransformed" + ToString<int>(i) + ".ply";
-
-		create_camera4d(internal_cali, Bs[i], 100, 0, 200, COs[0].image_size.height, COs[0].image_size.width,
-				camera_file_robot, 250);
-
 	}
 
 	Matrix3d TestR;

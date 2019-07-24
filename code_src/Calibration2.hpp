@@ -76,7 +76,7 @@ public:
 
 	void Calibrate(std::ofstream& out, string write_directory);
 
-	void CalibrateFlexibleExternal(float initial_focal_px, std::ofstream& out, string write_directory);
+	void CalibrateFlexibleExternal(float initial_focal_px, int zero_tangent_dist, int zero_k3, std::ofstream& out, string write_directory);
 
 	void LevMarCameraCaliNoDistortion(vector< vector<cv::Point2f> >& imagep, vector< vector<cv::Point3f> >& worldp,
 			std::ofstream& out);

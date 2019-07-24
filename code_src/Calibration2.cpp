@@ -602,7 +602,7 @@ void CaliObjectOpenCV2::Calibrate(std::ofstream& out, string write_directory){
 	}
 }
 
-void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, std::ofstream& out, string write_directory){
+void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, int zero_tangent_dist, int zero_k3, std::ofstream& out, string write_directory){
 
 	// need to make the points 3D
 	string camera_ply_directory = write_directory + "/ply_cameras";
@@ -684,8 +684,23 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, std::o
 
 	if (text_file.size() == 0){
 
+		int flags = cv::CALIB_USE_INTRINSIC_GUESS;
+
+		if (zero_tangent_dist && !zero_k3){
+			flags = cv::CALIB_USE_INTRINSIC_GUESS | cv::CALIB_ZERO_TANGENT_DIST ;
+		}
+
+		if (zero_tangent_dist && zero_k3){
+			flags = cv::CALIB_USE_INTRINSIC_GUESS | cv::CALIB_ZERO_TANGENT_DIST | cv::CALIB_FIX_K3;
+		}
+
+		if (!zero_tangent_dist && zero_k3){
+			flags = cv::CALIB_USE_INTRINSIC_GUESS | cv::CALIB_FIX_K3;
+		}
+
+
 		rms = cv::calibrateCamera(all_3d_corners, all_points_wo_blanks, image_size, cameraMatrix, distCoeffs, rvecs, tvecs,
-				cv::CALIB_USE_INTRINSIC_GUESS | cv::CALIB_ZERO_TANGENT_DIST | cv::CALIB_FIX_K3);
+				flags);
 
 	}	else {
 		ifstream in(text_file.c_str());
