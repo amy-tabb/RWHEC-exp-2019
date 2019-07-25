@@ -698,6 +698,8 @@ void CaliObjectOpenCV2::CalibrateFlexibleExternal(float initial_focal_px, int ze
 			flags = cv::CALIB_USE_INTRINSIC_GUESS | cv::CALIB_FIX_K3;
 		}
 
+		cout << "Calibration flags. " << flags << endl;
+
 
 		rms = cv::calibrateCamera(all_3d_corners, all_points_wo_blanks, image_size, cameraMatrix, distCoeffs, rvecs, tvecs,
 				flags);

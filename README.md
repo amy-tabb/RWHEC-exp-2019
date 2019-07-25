@@ -1,6 +1,4 @@
 # RWHEC-exp-2019
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js"></script>
-
 
 Comments/Bugs/Problems: amy.tabb@usda.gov
 
@@ -16,76 +14,10 @@ There are several new features that may make their way to [amy-tabb/RWHEC-Tabb-A
 1. Options to customize the camera calibration portion (more details below); briefly, otherwise, one gets a not-very-useful calibration for limited camera views during debugging
 2. Options to convert matrices where the robot pose is provided with **R** and the end-effector position **C**, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process and it is also implemented in the code such that the HTMs for the robot are   
 
-<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
-  <mrow>
-    <mo>[</mo>
-    <mtable rowspacing="4pt" columnspacing="1em">
-      <mtr>
-        <mtd>
-          <mtable rowspacing="4pt" columnspacing="1em">
-            <mtr>
-              <mtd>
-                <mrow class="MJX-TeXAtom-ORD">
-                  <mi mathvariant="bold">R</mi>
-                </mrow>
-              </mtd>
-            </mtr>
-            <mtr>
-              <mtd>
-                <mtable rowspacing="4pt" columnspacing="1em">
-                  <mtr>
-                    <mtd>
-                      <mn>0</mn>
-                    </mtd>
-                    <mtd>
-                      <mn>0</mn>
-                    </mtd>
-                    <mtd>
-                      <mn>0</mn>
-                    </mtd>
-                  </mtr>
-                </mtable>
-              </mtd>
-            </mtr>
-          </mtable>
-        </mtd>
-        <mtd>
-          <mtable rowspacing="4pt" columnspacing="1em">
-            <mtr>
-              <mtd>
-                <mrow class="MJX-TeXAtom-ORD">
-                  <mi mathvariant="bold">t</mi>
-                </mrow>
-              </mtd>
-            </mtr>
-            <mtr>
-              <mtd>
-                <mn>1</mn>
-              </mtd>
-            </mtr>
-          </mtable>
-        </mtd>
-      </mtr>
-    </mtable>
-    <mo>]</mo>
-  </mrow>
-</math>
-
-OpenCV 4.0 (OpenCV 3.0 may work with changes of some enums - read below)
-
-Ceres 1.14
-
-Eigen 3.3.4
-
-A deprecated version using earlier versions of OpenCV (and newmat for matrix handling instead of Eigen) is available https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef2017. 
-
-November 19, 2018: Eclipse project version
-
-December 6, 2018: fix on Eigen version bug.
-
-March 23, 2019: add include wrt OpenCV 4 library to CMakeLists.txt file.
-
-A bug with regards to the computation of the translation error has been corrected. In additon, the code has been cleaned up in this version versus the previous one.  If you wish to understand the code, this is the version to use.  The performance of both versions is identical so far as I can tell on my machines.
+````
+[  R    t   ]
+[ 0 0 0  1  ]
+````
 
 # Underlying ideas; how and when to cite this work
 
@@ -111,6 +43,7 @@ url="https://doi.org/10.1007/s00138-017-0841-7"
 ````
 
 Dataset and/or code:
+
 ````latex
 @misc{tabb_data_2017,
 	title = {Data from: {Solving} the {Robot}-{World} {Hand}-{Eye}(s) {Calibration} {Problem} with {Iterative} {Methods}},
@@ -131,75 +64,52 @@ If you use this code in project that results in a publication, please cite at a 
 
 # Building
 
-This README covers instructions for building the code.
+Please see [amy-tabb/RWHEC-Tabb-AhmadYousef](https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef) for building instructions -- they will be identical.
 
-## Dependencies
+# Running
 
-This code uses the Ceres, OpenCV 4.0, and Eigen libraries.  Ceres uses cmake, so as a result, this is a cmake project.  You will need to have cmake installed in order to build the project.
+1. The executable using the method above is going to be in the `build` folder.  The arguments for the program are found by running the program with the `--help` flag.
 
-[Ceres](http://ceres-solver.org/)
+Here's the current listing (subject to change):
 
-We are not responsible for whatever it takes to get Ceres to build; but advise that having a recent version of Eigen and Google's glog are helpful to the process. 
-
-[OpenCV](http://opencv.org/) As of this writing, the version installed from [github](https://github.com/opencv/opencv) is returning OpenCV 4.0.
-
-To convert code written under OpenCV 3.0 to OpenCV 4.0, the biggest change revolved around calibration flag enums such as `CV_CALIB_CB_ADAPTIVE_THRESH`.  To get this code to compile under OpenCV 4.0, all I did was change such a flag to `cv::CALIB_CB_ADAPTIVE_THRESH`.  To go back to OpenCV 3.0, you would do the opposite.  I have left the OpenCV 3.x code intact, but commented -- so if you have OpenCV < 4.0, try to compile, find the errors, comment out the OpenCV 4.0 version, and uncomment the OpenCV 3.x versions.  
-
-This code has been tested on Ubuntu 14.04 (for OpenCV 3.x) and Ubuntu 16.04 and Ubuntu 18.04 (for OpenCV 3.x and 4.0).  You are welcome to convert it to Windows, but I have not.  While OpenCV is available from distribution repositories, my long experience with it is has always been to build from the source to get the best results.
-
-**Is getting all of this to work on your system too much of a pain and you are interested in a Docker release?  Let me know!  The squeaky wheel gets the grease.  Email above.**
-
-**Windows:** a user reports that the code compiles on Windows in VisualStudio 2013.  Add the include file `dirent.h`.  29 November 2018.
-
-## Building 
-
-Building:
-These instructions assume that you use cmake to generate a project file for the Eclipse Integrated Development Environment (IDE).  There are other methods for using cmake to generate an executable.  You are welcome to use them.  These instructions are provided to give the basics assuming you have an Eclipse installation, and cloned this git repository.  Experienced users, alter at will.
-
-*These instructions have recently been revised, Nov. 19, 2018.*
-
- 1. Clone the git repository.  `cd` to the desired directory, then from the command line  -- ` git clone https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef.git`.  
-
-2. `$ cd RWHEC-Tabb-AhmadYousef`
-
-3. The code is provided in a directory called `code_src`, along with a `CMakeLists.txt` file.  
-
-4. Then cd to the build directory: from bash `$ cd build`.
-
-5. Then, copy the following string to the base command line: 
 ```
-cmake -G"Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_GENERATE_SOURCE_PROJECT=TRUE ../code_src/
+--input=[STRING]                          Mandatory, has to be a directory.
+--output=[STRING]                         Mandatory, has to be a directory.
+--focal-px=[float]                        Initial focal length in pixels for the camera.  Default is max dimension * 1.2 
+--camera-only                             No arguments. Indicates you only want to calibrate the camera(s)
+--rwhec-only                              No arguments. Indicates you only want to perform the robot-camera calibration, cameras are already calibrated and the calibration is stored in the write directory (check).
+ To calibrate cameras and robot-camera, do not list either flag.
+--htms-need-trans                         No arguments.  Indicates that the robot HTMs are R | C instead of R | t. The code will transform and write the correct file.  NOTE: X, Z assume R | t, this is a transition feature and will be removed.
+--zero-tangent                            No arguments. In the camera calibration part, sets the tangential components of radial distortion (p1, p2) to zero.
+--zero-k3                                 No arguments. In the camera calibration part, sets the 3rd radial distortion k value to zero.
 ```
-(if you are doing your own thing, you can replace `../code_src/` with the path to where you put the `code_src` folder.)
 
-6. Then, go to the Eclipse IDE, CDT (C development toolkit). Go to File->Import->Existing projects into workspace. Select the project in the `build` directory.  This will load the project into Eclipse.  Build from Eclipse, and you're ready to run. Note that you may need to check the CMakeLists.txt file for the location of the Eigen and OpenCV includes, and edit if necessary.
+Brief explanations: 
+- you need to provide an input directory, this is where all of your data is.  [Input format](#input-format) describes how to format this data.
+- you need to provide an output directory, where the results will be written.
+- you may select to only compute the camera calibration parameters, if so, trigger this by selecting the `--camera-only` flag.
+- Assuming that the camera calibration parameters have been computed *and reside in the output directory*, you may select to only compute the robot-world, hand-eye calibration with those pre-computed camera calibration parameters.  Do so via the `--rwhec-only`.  
+- if you want to compute everything, don't use either  `--camera-only`  or the `--rwhec-only` flag -- this is my recommendation.
+- to indicate the likely focal length in pixels to initialize the camera calibration, do so via `--focal-px=[float]`. (This is the value of the top left entry of the intrinsic camera calibration matrix.)
+- during camera calibration, to indicate that the tangential components of radial distortion (p1, p2) are zero use flag `--zero-tangent`.  This is needed sometimes, examples are in TODO.
+- similarly, during camera calibration, to indicate that the 3rd radial distortion k value is zero, use flag `--zero-k3`.  It is likely that one would use `--zero-tangent` and `--zero-k3` together.  Again -- more discussion in TODO.
+- if the robot poses are provided with **C** instead of **t**, the program will transform the matrices and write the new HTMs if flag `--htms-need-trans` is used.  Note that the resulting **X** and **Z** matrices as a result of the calibration assume that **t** is provided as expected, so take a look at the code to get this sorted out in your input. More details in TODO.
 
 
-## Running
-
-1. The executable using the method above is going to be in the `build` folder.  The arguments for the program are:
-
-	A. input directory -- this is where the images and robot positions are held.
-
-	B. write directory -- this is where all of the results will be written to file, including transformation.
-
-	C. Optional flag, 0 or 1.  If the flag is 0, do only camera calibration.  If the flag is 1, do robot world-hand eye calibration using a previously-computed camera calibration. 
- If no flag is specified, do camera calibration and robot-world, hand-eye calibration.  Most users will want to not specify a flag.
-
-Instructions for the input format can be found in: `README_input_format.txt`.
+Instructions for the input format can be found at [Input format](#input-format).
 
 Run time:
-It will take some time (on the order of 4 minutes) to perform camera calibration, and then to perform all of the robot-world, hand-eye calibration methods (4 minutes more), though this varies by dataset and image size. 
+It will take some time (on the order of 4 minutes) to perform camera calibration, and then to perform all of the robot-world, hand-eye calibration methods (4 minutes more), though this varies by dataset, image size, and processor speed. 
 
 # Input format
 
-INPUT FORMAT -- DATASETS ARE POSTED AT THE National Agriculture Library's Ag Data Commons, DOI is [10.15482/USDA.ADC/1340592]( http://dx.doi.org/10.15482/USDA.ADC/1340592)
+INPUT FORMAT -- test datasets are posted at the (U.S.) National Agriculture Library's Ag Data Commons, DOI is [10.15482/USDA.ADC/1340592](http://dx.doi.org/10.15482/USDA.ADC/1340592).
 
 ## Required Directories:
 
 1. `images`
 
-2. `internal_images`
+2. `internal_images` (not required now -- optional)
 
 Each of these directories, should contain directories by camera with images.  For instance, for one camera, the `images` directory should contain `camera0`.  For two cameras, it should contain `camera0` and `camera1`. Use the provided datasets as templates for how to set up your own datasets.
 
@@ -228,192 +138,68 @@ The `images` directory represents the images for each stop of the robot.  `inter
 
 # Output format
 
-This README covers the output format generated in the write directory, and how to interpret that format.
+Please see [amy-tabb/RWHEC-Tabb-AhmadYousef](https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef) for the "Output format" section -- it will be identical, except for some extra debugging files written.
 
-## Camera calibration:
+# Troubleshooting
 
-For each camera, a directory will be generated with the name `camera_results*` in the write directory, including:
+If you're getting started with calibrating your robot arm, here are some notes about how to figure out some common problems and hopefully, get your system calibrated faster, whether or not you use this code.  All the methods I am aware of will assume that your robot pose follows a certain convention, and poor camera calibration quality can also affect results.
 
-1. For each image that the calibration pattern could be found, an undistorted version of that image.
+First of all, get a dataset with a small number of robot positions, and use the flags in [Camera calibration parameters](#camera-calibration-parameters).  Not only will the code run faster, it will be easier to see where there are issues. 
 
-2. `cali.txt`, a file with the calibration information for each image	
+## Robot pose parameters
 
-3. `details.txt`, a human-readable file with the internal and external camera calibration information.
+Many robot controllers provide the robot's pose in the form of some rotation parameters, as well as the end-effector's position.  I'll assume that you are able to convert the rotation parameters into a DCM (directed cosine matrix) **R**, which is a 3x3 orthogonal matrix.  The end-effector position (3x1 vector) is analogous to **C** in the camera-calibration literature.  IT IS NOT **t**.  The matrix you want for the robot pose is:
 
-4. `program_readable_details.txt`, a file that saves the results of camera calibration to be loaded later by the program for robot-world, hand-eye calibration, if it is desired to perform these in two stages.
-
-## Robot-world, hand-multiple-eye calibration:
-
-A. For each method, a directory will be generated with the short name of the method in the write directory. To correspond directories to the methods in the paper, look at the code in the switch statement (copied at the end of this README).  "rwhe_E_c1_simul" is an abbreviated form of "robot-world, hand-eye calibration using Euler parameterization of rotation components, c1 cost function, simultaneous version."  Each directory contains the following:
-
-1.  A directory for each camera, with the location of the camera as computed by the robot-world, hand-eye calibration method detailed in `cali.txt`.
-
-2. `details.txt`, a log of the progress of the method, including the output from Ceres.
-
-3. `reproj*_*.png`, for each image where the calibration pattern was found, the difference between the reprojected world points of the calibration, as computed using the robot-world, hand-eye calibration X and Z and the original image points is represented with a blue line. In the terminology of our paper, the two points are x_ij-tilde-arrow in Equation 13, and x_ij-arrow.  The sum of the squared line distances for all images in shown in Eq. 14.
-
-4. `transformations.txt`, gives the X and Z matrices for the robot-world, hand-eye calibration method.  If there was more than one camera, there will be more than one Z matrix. 
-	
-**Note: if you are using one of the methods that also refines the camera calibration parameters, you will have to read that from the `details file`.** 
-
-For instance, these are camera calibration parameters (in vector format), followed by the transformation matrices, for the three-camera case:
-
-```
-	camera cali parameters: 
-	901.785 614.251 901.953 488.749 -1.12816 -1.75366 -0.00023577 0.00117675 4.2581 -0.963205 -2.16453 4.64133 
-	894.042 614.645 893.77 493.359 -0.802799 -1.79314 0.000182051 0.00269701 1.82896 -0.64391 -2.10322 1.97268 
-	602.116 302.303 601.015 227.248 -1.32861 -10.4952 0.000215779 0.00287148 19.6213 -1.33708 -10.4118 19.4644 
-
-	X 
-	-0.007764 -0.999956 0.005239 256.148590 
-	0.000676 0.005234 0.999986 -511.077054 
-	-0.999970 0.007768 0.000635 -2195.038552 
-	0.000000 0.000000 0.000000 1.000000 
-
-	Z 0
-	0.998300 -0.058206 -0.002952 -15.311861 
-	0.058232 0.998256 0.009658 37.452705 
-	0.002384 -0.009813 0.999949 15.974169 
-	0.000000 0.000000 0.000000 1.000000 
-
-	Z 1
-	0.998455 -0.054832 -0.009007 66.123654 
-	0.054915 0.998449 0.009205 38.425469 
-	0.008489 -0.009686 0.999917 -1.585840 
-	0.000000 0.000000 0.000000 1.000000 
-
-	Z 2
-	0.998056 -0.061139 -0.012104 42.650376 
-	0.061284 0.998048 0.012006 104.653622 
-	0.011346 -0.012724 0.999855 42.838269 
-	0.000000 0.000000 0.000000 1.000000 
- ```
-
-B. Besides the directories for each method, there will be a directory titled `reconstructions`.  This has .ply files for the calibration pattern reconstructed using the calibration information from each method, including the ground truth (ideal.ply), and is sometimes useful for visualization purposes.  These model files can be viewed in a viewer such as [MeshLab](http://www.meshlab.net/).
-
-C. `comparisons.txt`, shows the results according to the metrics we discuss in our paper, excepting the reconstruction accuracy metric.
-
-D. `reconstruction_accuracy_error_comparisons.txt`, shows the individual results for the reconstruction accuracy metric.
-
-````c++
-		switch (option) {
-		case 0:{
-			descriptor_string = "Euler param. c1 simultaneous ";
-			abbreviated_descriptor_string = "E_c1_simul";
-			param_type = Euler;
-			cost_type = c1;
-			separable = false;
-		} break;
-		case 1:{
-			descriptor_string = "Axis Angle c1 simultaneous";
-			abbreviated_descriptor_string = "AA_c1_simul";
-			param_type = AxisAngle;
-			cost_type = c1;
-		} break;
-		case 2:{
-			descriptor_string = "Quaternion c1 simultaneous ";
-			abbreviated_descriptor_string = "Q_c1_simul";
-			param_type = Quaternion;
-			cost_type = c1;
-			separable = false;
-		} break;
-		case 3:{
-			descriptor_string = "Euler param. c2 simultaneous";
-			abbreviated_descriptor_string = "E_c2_simul";
-			param_type = Euler;
-			cost_type = c2;
-			separable = false;
-		} break;
-		case 4:{
-			descriptor_string = "Axis Angle c2 simultaneous";
-			abbreviated_descriptor_string = "AA_c2_simul";
-			param_type = AxisAngle;
-			cost_type = c2;
-			separable = false;
-		} break;
-		case 5:{
-			descriptor_string = "Quaternion c2 simultaneous";
-			abbreviated_descriptor_string = "Q_c2_simul";
-			param_type = Quaternion;
-			cost_type = c2;
-			separable = false;
-		} break;
-		case 6:{
-			descriptor_string = "Euler parameterzation c1 separable ";
-			abbreviated_descriptor_string = "E_c1_separable";
-			param_type = Euler;
-			cost_type = c1;
-			separable = true;
-		} break;
-		case 7:{
-			descriptor_string = "Axis Angle c1 separable ";
-			abbreviated_descriptor_string = "AA_c1_separable";
-			param_type = AxisAngle;
-			cost_type = c1;
-			separable = true;
-		} break;
-		case 8:{
-			descriptor_string = "Quaternion c1 separable ";
-			abbreviated_descriptor_string = "Q_c1_separable";
-			param_type = Quaternion;
-			cost_type = c1;
-			separable = true;
-		} break;
-		case 9:{
-			descriptor_string = "Euler param. c2 separable ";
-			abbreviated_descriptor_string = "E_c2_separable";
-			param_type = Euler;
-			cost_type = c2;
-			separable = true;
-		} break;
-		case 10:{
-			descriptor_string = "Axis Angle c2 separable ";
-			abbreviated_descriptor_string = "AA_c2_separable";
-			param_type = AxisAngle;
-			cost_type = c2;
-			separable = true;
-		} break;
-		case 11:{
-			descriptor_string = "Quaternion c2 separable ";
-			abbreviated_descriptor_string = "Q_c2_separable";
-			param_type = Quaternion;
-			cost_type = c2;
-			separable = true;
-		} break;
-		case 12:{
-			descriptor_string = "Euler, Reprojection Error I ";
-			abbreviated_descriptor_string = "E_RPI";
-			param_type = Euler;
-			cost_type = rp1;
-		} break;
-		case 13:{
-			descriptor_string = "Axis Angle, Reprojection Error I";
-			abbreviated_descriptor_string = "AA_RPI";
-			param_type = AxisAngle;
-			cost_type = rp1;
-		} break;
-		case 14:{
-			descriptor_string = "Quaternion, Reprojection Error I";
-			abbreviated_descriptor_string = "Q_RPI";
-			param_type = Quaternion;
-			cost_type = rp1;
-		} break;
-		case 15:{
-			descriptor_string = "Euler, Reprojection Error II ";
-			abbreviated_descriptor_string = "E_RPII";
-			param_type = Euler;
-			cost_type = rp2;
-		} break;
-		case 16:{
-			descriptor_string = "AxisAngle, Reprojection Error II ";
-			abbreviated_descriptor_string = "AA_RPII";
-			param_type = AxisAngle;
-			cost_type = rp2;
-		} break;
-		case 17:{
-			descriptor_string = "Quaternion, Reprojection Error II ";
-			abbreviated_descriptor_string = "Q_RPII";
-			param_type = Quaternion;
-			cost_type = rp2;
-		} break;
 ````
+[  R    t   ]
+[ 0 0 0  1  ]
+````
+
+Converting **R** and **C** to get **t** is straightforward:
+
+````C++
+t = -R*C;
+````
+
+That's it.  Note that if you use a method that is not mine, things to watch out for are the directions of the transformations.  In the paper above -- [link to non-paywalled version](https://www.researchgate.net/publication/316625160_Solving_the_robot-world_hand-eyes_calibration_problem_with_iterative_methods) -- we defined the transformations slightly differently such that computing the reprojection error was more straightforward.  
+
+If you have your matrices set up in this way, with **C** instead of **t**:
+
+````
+[  R    C   ]
+[ 0 0 0  1  ]
+````
+
+select the flag `--htms-need-trans` and the program will do the conversion for you, and write a file of these transformations.  Note that the calibration information -- **X** and **Z** assume that **t** is used, so you'll want to send **t** in your future projects when using the calibration information. 
+
+## Camera calibration parameters
+
+Three arguments have to deal with camera calibration parameters:
+
+````bash
+--focal-px=[float]                        Initial focal length in pixels for the camera.  Default is max dimension * 1.2 
+--zero-tangent                            No arguments. In the camera calibration part, sets the tangential components of radial distortion (p1, p2) to zero.
+--zero-k3                                 No arguments. In the camera calibration part, sets the 3rd radial distortion k value to zero.
+````
+First, if the focal length in pixels is known, this can be used to initialize the optimization of camera calibration parameters.  In the internal camera calibration matrix, this is the entry in the first row, first column.
+
+Sometimes when the number of poses does not provide enough variety -- or the minimization finds a local minima that has a lower reprojection error -- the distortion coefficient estimation will not be desirable.  I will provide some examples.
+
+First, the raw image:
+
+<img src="READMEimages/image10.png" alt="Raw calibration image" width="300"/>  
+
+Then, the camera is calibrated without using any flags.  In this particular example, it did not work out well.  You can tell by going to the output directory->camera_results0, and have a look at the undistorted images.  
+
+Here's the result:
+
+<img src="READMEimages/bad-ext10.png" alt="Poor radial distortion estimation" width="300"/>
+
+Pretty bad!  This is not what we want -- radial distortion correction should take straight lines in the physical world, and map them to straight lines in the image plane.  To get around this, set 
+
+`--zero-tangent --zero-k3` (some experimentation may be necessary) and in this case, 
+
+<img src="READMEimages/good-ext10.png" alt="Poor radial distortion estimation" width="300"/>
+
+You are of course free to modify the Calibration2.cpp file for your particular camera calibration needs, but these little notes may help some get over some issues.
+

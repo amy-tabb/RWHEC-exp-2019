@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 	int rwhec_only = 0;
 	int htms_need_trans = 0;
 	int zero_tangent_dist = 0;
-	int zero_k3;
+	int zero_k3 = 0;
 
 
 	while (1)
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 			cout << std::left << setw(42) << "--rwhec-only "  << "No arguments. Indicates you only want to perform the robot-camera calibration, cameras are already calibrated and the calibration is stored in the write directory (check)." << endl;
 			cout << " To calibrate cameras and robot-camera, do not list either flag." << endl;
 			cout << std::left << setw(42) << "--htms-need-trans " << "No arguments.  Indicates that the robot HTMs are R | C instead of R | t. The code will transform and write the correct file.  NOTE: X, Z assume R | t, this is a transition feature and will be removed." << endl;
-			cout << std::left << setw(42) << "--zero-tangent " << "No arguments. In the camera calibration part, sets the tagential components of radial distortion (p1, p2) to zero." << endl;
+			cout << std::left << setw(42) << "--zero-tangent " << "No arguments. In the camera calibration part, sets the tangential components of radial distortion (p1, p2) to zero." << endl;
 			cout << std::left << setw(42) << "--zero-k3 " << "No arguments. In the camera calibration part, sets the 3rd radial distortion k value to zero." << endl;
 			cout << "All other arguments are ignored." << endl;
 			cout << endl << endl;
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
 
 
-		cali_object_file =  string(source_dir) + "calibration_object.txt";
+	cali_object_file =  string(source_dir) + "calibration_object.txt";
 
 	ifstream in;
 	in.open(cali_object_file.c_str());
@@ -218,17 +218,16 @@ int main(int argc, char** argv) {
 	out.open(filename.c_str());
 	out << "arguments: " << endl;
 	if (left_handed_robot){
-	out << "--left-handed-robot \\" << endl;
+		out << "--left-handed-robot \\" << endl;
 	}
 
-	if (!camera_only && !rwhec_only){
-		if (camera_only){
-			out << "--camera-only \\" << endl;
-		}
 
-		if (rwhec_only){
-			out << "--rwhec-only \\" << endl;
-		}
+	if (camera_only){
+		out << "--camera-only \\" << endl;
+	}
+
+	if (rwhec_only){
+		out << "--rwhec-only \\" << endl;
 	}
 
 	if (htms_need_trans){
@@ -362,13 +361,18 @@ int RobotWorldHandEyeCalibration(double square_mm_height, double square_mm_width
 			external_dir = source_dir + "images/" + camera_names[k] ;
 			internal_dir = source_dir + "internal_images/" + camera_names[k];
 
-			DIR* dir = opendir(internal_dir.c_str());
-			if (dir)
-			{
-				/* Directory exists. */
-				closedir(dir);
+
+
+			struct stat info;
+
+			if( stat( internal_dir.c_str(), &info ) != 0 ){
+				cout << "No internal images directory " << endl;
+
+			}
+			else if( info.st_mode & S_IFDIR ){  // S_ISDIR()
 				COs[k].ReadImages(internal_dir, 0);
 			}
+
 
 			COs[k].ReadImages(external_dir, 1);
 
