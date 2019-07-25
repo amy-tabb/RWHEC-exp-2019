@@ -12,7 +12,7 @@ There are several new features that may make their way to [amy-tabb/RWHEC-Tabb-A
 	
 1. Calling the program using more standard flags (via getopt.h) versus a sort of convoluted argument structure.
 1. Options to customize the camera calibration portion (more details below [Camera calibration parameters](#camera-calibration-parameters)); briefly, otherwise, one gets a not-very-useful calibration for limited camera views during debugging.
-2. Options to convert matrices where the robot pose is provided with **R** and the end-effector position **C**, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process and it is also implemented in the code such that the HTMs for the robot are   
+2. Options to convert matrices where the robot pose is provided with **R** and the end-effector position **C**, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process ([Robot pose parameters](#robot-pose-parameters))and it is also implemented in the code such that the HTMs for the robot are   
 
 ````
 [  R    t   ]
@@ -199,7 +199,23 @@ Pretty bad!  This is not what we want -- radial distortion correction should tak
 
 `--zero-tangent --zero-k3` (some experimentation may be necessary) and in this case, 
 
-<img src="READMEimages/good-ext10.png" alt="Poor radial distortion estimation" width="300"/>
+<img src="READMEimages/good-ext10.png" alt="Better radial distortion estimation" width="300"/>
 
 You are of course free to modify the Calibration2.cpp file for your particular camera calibration needs.
+
+## Interpretation of results, quick version
+
+The paper -- again, [non-paywalled link](https://www.researchgate.net/publication/316625160_Solving_the_robot-world_hand-eyes_calibration_problem_with_iterative_methods) -- concerned evaluating lots of choices when it came to robot-world, hand-eye camera calibration, in terms of parameterizations and cost function. *Because of this, not all of the methods will have a good result -- especially the seperable methods*.  This was one of the points of the paper.  To be quick, use a simulataneous method, gold standard would be to use a RPI method.   
+
+The below image shows a distorted image, with the overlaid difference between the calibration pattern and reprojected points (as computed by the calibration) in blue, using the Euler-c1-simulaneous method.  You want to see a small amount of blue.
+
+<img src="READMEimages/reproj0_10_simul.png" alt="Reprojected image after calibration" width="300"/>
+
+For the same dataset, with the Euler-c1-seperable method, this is the reprojected image.  There is a large reprojection error, and lots of blue.  Don't use the results from this method as your calibration!
+
+<img src="READMEimages/reproj0_10_seperable.png" alt="Reprojected image after calibration" width="300"/>
+
+
+
+
 
