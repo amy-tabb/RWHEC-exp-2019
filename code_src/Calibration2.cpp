@@ -258,7 +258,7 @@ bool CaliObjectOpenCV2::AccumulateCornersFlexibleExternal(bool draw_corners){
 		// OpenCV version differences
 		corner_found = cv::findChessboardCorners(gimage, boardsize, pointBuf,  CALIB_CB_ADAPTIVE_THRESH + CALIB_CB_NORMALIZE_IMAGE + CALIB_CB_FAST_CHECK + CALIB_CB_FILTER_QUADS);
 
-		if (corner_found) {
+		if (corner_found ) {
 
 			// need to flip the orientation, possibly ...
 
@@ -339,7 +339,7 @@ bool CaliObjectOpenCV2::AccumulateCornersFlexibleExternal(bool draw_corners){
 //			corner_found = cv::findChessboardCorners(gimage, boardsize, pointBuf,  CALIB_CB_ADAPTIVE_THRESH);
 //		}
 
-		// TODO
+
 		if (corner_found) {
 
 			// need to flip the orientation, possibly ...
