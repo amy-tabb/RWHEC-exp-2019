@@ -172,6 +172,8 @@ If you have your matrices set up in this way, with **C** instead of **t**:
 
 select the flag `--htms-need-trans` and the program will do the conversion for you, and write a file of these transformations.  Note that the calibration information -- **X** and **Z** assume that **t** is used, so you'll want to send **t** in your future projects when using the calibration information. 
 
+*Note that there may still be some preprocessing needed to get your robot output into a form such that it represents the correct transformation.  This is one transformation, depending on your robot, you may need another one.*
+
 ## Camera calibration parameters
 
 Three arguments have to deal with camera calibration parameters:
