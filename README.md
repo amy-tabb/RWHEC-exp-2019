@@ -14,10 +14,62 @@ There are several new features that may make their way to [amy-tabb/RWHEC-Tabb-A
 	
 1. Calling the program using more standard flags (via getopt.h) versus a sort of convoluted argument structure
 1. Options to customize the camera calibration portion (more details below); briefly, otherwise, one gets a not-very-useful calibration for limited camera views during debugging
-2. Options to convert matrices where the robot pose is provided with $\mathbf{R}$ and the end-effector position $\mathbf{C}$, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process and it is also implemented in the code such that the HTMs for the robot are   
+2. Options to convert matrices where the robot pose is provided with **R** and the end-effector position **C**, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process and it is also implemented in the code such that the HTMs for the robot are   
 
-$$\begin{bmatrix} \begin{matrix} \mathbf{R} \\ 
- \begin{matrix} 0 & 0 & 0\end{matrix} \end{matrix}  &  \begin{matrix} \mathbf{t} \\ 1 \end{matrix}  \end{bmatrix}$$
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow>
+    <mo>[</mo>
+    <mtable rowspacing="4pt" columnspacing="1em">
+      <mtr>
+        <mtd>
+          <mtable rowspacing="4pt" columnspacing="1em">
+            <mtr>
+              <mtd>
+                <mrow class="MJX-TeXAtom-ORD">
+                  <mi mathvariant="bold">R</mi>
+                </mrow>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mtable rowspacing="4pt" columnspacing="1em">
+                  <mtr>
+                    <mtd>
+                      <mn>0</mn>
+                    </mtd>
+                    <mtd>
+                      <mn>0</mn>
+                    </mtd>
+                    <mtd>
+                      <mn>0</mn>
+                    </mtd>
+                  </mtr>
+                </mtable>
+              </mtd>
+            </mtr>
+          </mtable>
+        </mtd>
+        <mtd>
+          <mtable rowspacing="4pt" columnspacing="1em">
+            <mtr>
+              <mtd>
+                <mrow class="MJX-TeXAtom-ORD">
+                  <mi mathvariant="bold">t</mi>
+                </mrow>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mn>1</mn>
+              </mtd>
+            </mtr>
+          </mtable>
+        </mtd>
+      </mtr>
+    </mtable>
+    <mo>]</mo>
+  </mrow>
+</math>
 
 OpenCV 4.0 (OpenCV 3.0 may work with changes of some enums - read below)
 
