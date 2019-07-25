@@ -10,8 +10,8 @@ Methods for robot-world, hand-eye calibration; version 2.1.
 
 There are several new features that may make their way to [amy-tabb/RWHEC-Tabb-AhmadYousef](https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef) ... eventually.
 	
-1. Calling the program using more standard flags (via getopt.h) versus a sort of convoluted argument structure
-1. Options to customize the camera calibration portion (more details below); briefly, otherwise, one gets a not-very-useful calibration for limited camera views during debugging
+1. Calling the program using more standard flags (via getopt.h) versus a sort of convoluted argument structure.
+1. Options to customize the camera calibration portion (more details below [Camera calibration parameters](#camera-calibration-parameters)); briefly, otherwise, one gets a not-very-useful calibration for limited camera views during debugging.
 2. Options to convert matrices where the robot pose is provided with **R** and the end-effector position **C**, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process and it is also implemented in the code such that the HTMs for the robot are   
 
 ````
@@ -91,9 +91,9 @@ Brief explanations:
 - Assuming that the camera calibration parameters have been computed *and reside in the output directory*, you may select to only compute the robot-world, hand-eye calibration with those pre-computed camera calibration parameters.  Do so via the `--rwhec-only`.  
 - if you want to compute everything, don't use either  `--camera-only`  or the `--rwhec-only` flag -- this is my recommendation.
 - to indicate the likely focal length in pixels to initialize the camera calibration, do so via `--focal-px=[float]`. (This is the value of the top left entry of the intrinsic camera calibration matrix.)
-- during camera calibration, to indicate that the tangential components of radial distortion (p1, p2) are zero use flag `--zero-tangent`.  This is needed sometimes, examples are in TODO.
-- similarly, during camera calibration, to indicate that the 3rd radial distortion k value is zero, use flag `--zero-k3`.  It is likely that one would use `--zero-tangent` and `--zero-k3` together.  Again -- more discussion in TODO.
-- if the robot poses are provided with **C** instead of **t**, the program will transform the matrices and write the new HTMs if flag `--htms-need-trans` is used.  Note that the resulting **X** and **Z** matrices as a result of the calibration assume that **t** is provided as expected, so take a look at the code to get this sorted out in your input. More details in TODO.
+- during camera calibration, to indicate that the tangential components of radial distortion (p1, p2) are zero use flag `--zero-tangent`.  This is needed sometimes, examples are in [Camera calibration parameters](#camera-calibration-parameters).
+- similarly, during camera calibration, to indicate that the 3rd radial distortion k value is zero, use flag `--zero-k3`.  It is likely that one would use `--zero-tangent` and `--zero-k3` together.  Again -- more discussion in [Camera calibration parameters](#camera-calibration-parameters).
+- if the robot poses are provided with **C** instead of **t**, the program will transform the matrices and write the new HTMs if flag `--htms-need-trans` is used.  Note that the resulting **X** and **Z** matrices as a result of the calibration assume that **t** is provided as expected, so take a look at the code to get this sorted out in your input. More details in [Robot pose parameters](#robot-pose-parameters).
 
 
 Instructions for the input format can be found at [Input format](#input-format).
@@ -201,5 +201,5 @@ Pretty bad!  This is not what we want -- radial distortion correction should tak
 
 <img src="READMEimages/good-ext10.png" alt="Poor radial distortion estimation" width="300"/>
 
-You are of course free to modify the Calibration2.cpp file for your particular camera calibration needs, but these little notes may help some get over some issues.
+You are of course free to modify the Calibration2.cpp file for your particular camera calibration needs.
 
