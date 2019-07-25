@@ -1,10 +1,26 @@
-# RWHEC-Tabb-AhmadYousef
+# RWHEC-exp-2019
 
-Comments/Bugs/Problems: amy.tabb@ars.usda.gov
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML" async>
+</script>
 
-Methods for robot-world, hand-eye calibration; version 2.0.
 
-~June, 2018: This code is up an updated version using the following versions of external libraries:
+Comments/Bugs/Problems: amy.tabb@usda.gov
+
+Methods for robot-world, hand-eye calibration; version 2.1.
+
+~July 2019: This code is an experimental version of [amy-tabb/RWHEC-Tabb-AhmadYousef](https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef). 
+
+### Differences
+
+There are several new features that may make their way to [amy-tabb/RWHEC-Tabb-AhmadYousef](https://github.com/amy-tabb/RWHEC-Tabb-AhmadYousef) ... eventually.
+	
+1. Calling the program using more standard flags (via getopt.h) versus a sort of convoluted argument structure
+1. Options to customize the camera calibration portion (more details below); briefly, otherwise, one gets a not-very-useful calibration for limited camera views during debugging
+2. Options to convert matrices where the robot pose is provided with $$\mathbf{R}$$ and the end-effector position $$\mathbf{C}$$, as is commonly provided by many robot controllers.  To convert to HTMs is not difficult, and I will describe this process and it is also implemented in the code such that the HTMs for the robot are   
+
+$$\begin{bmatrix} \begin{matrix} \mathbf{R} \\ 
+ \begin{matrix} 0 & 0 & 0\end{matrix} \end{matrix}  &  \begin{matrix} \mathbf{t} \\ 1 \end{matrix}  \end{bmatrix}$$
 
 OpenCV 4.0 (OpenCV 3.0 may work with changes of some enums - read below)
 
